@@ -1,0 +1,107 @@
+# ===========================
+# Namespace donde irán la API y los pods de usuarios
+# ===========================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sandbox
+---
+# ===========================
+# ServiceAccount para la API
+# ===========================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ide-api-sa
+  namespace: sandbox
+---
+# ===========================
+# Role con permisos sobre sandbox
+# ===========================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ide-api-role
+  namespace: sandbox
+rules:
+  - apiGroups: ["", "apps"]
+    resources: ["pods", "services", "deployments"]
+    verbs: ["create", "delete", "get", "list", "watch"]
+---
+# ===========================
+# RoleBinding: enlaza el SA con el Role
+# ===========================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ide-api-binding
+  namespace: sandbox
+subjects:
+  - kind: ServiceAccount
+    name: ide-api-sa
+    namespace: sandbox
+roleRef:
+  kind: Role
+  name: ide-api-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# ===========================
+# Secret para GHCR (si la imagen es privada)
+# ===========================
+# Ejecuta este comando antes de aplicar el manifiesto:
+# kubectl create secret docker-registry regcred \
+#   --docker-server=ghcr.io \
+#   --docker-username=<TU_USUARIO_GITHUB> \
+#   --docker-password=<TU_PERSONAL_ACCESS_TOKEN> \
+#   --docker-email=<TU_EMAIL> \
+#   --namespace=sandbox
+---
+# ===========================
+# Deployment de la API
+# ===========================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ide-api
+  namespace: sandbox
+  labels:
+    app: ide-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ide-api
+  template:
+    metadata:
+      labels:
+        app: ide-api
+    spec:
+      serviceAccountName: ide-api-sa
+      containers:
+        - name: ide-api
+          image: ghcr.io/pilarcode/ide-api:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: NAMESPACE
+              value: "sandbox"
+      imagePullSecrets:
+        - name: regcred
+---
+# ===========================
+# Service para exponer la API
+# ===========================
+apiVersion: v1
+kind: Service
+metadata:
+  name: ide-api
+  namespace: sandbox
+spec:
+  selector:
+    app: ide-api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: NodePort   # Cambia a LoadBalancer si estás en la nube
