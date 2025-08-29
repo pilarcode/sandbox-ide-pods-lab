@@ -1,14 +1,19 @@
-# IDE API
+# Lab
+Lab to explore how to create an API that interacts with the Kubernetes API to create pods on a specific namespace in a local cluster.
+
 ![Static Badge](https://img.shields.io/badge/version-0.0.1-blue)
 
 ## Description
-The API is responsible for creating and deleting resources in Kubernetes to install instances of Visual Studio for each user.
 
+The API is responsible for creating and deleting resources in a Kubernetes' cluster and create a deployment for each post request.
 
 ## Functionality
 The API interacts with the Kubernetes API to perform the following actions:
 - Creates a deployment and service for each user
 - Deletes the deployment and service for each user.
+- How to push docker images to GitHub Container Registry (GHCR).
+- How to deploy the API in the kubernetes cluster
+- How to give the API permission to create new objects (namespace, pods, nodes, etc) in the kubernetes cluster
 
 ## Prerequisites
 - Python 3.12+
