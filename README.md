@@ -159,7 +159,7 @@ kubectl port-forward svc/ide-api 8000:8000 -n sandbox
 ```
 
 
-# commands
+### Commands to check the status
 ```sh
 kubectl get svc -n sandbox
 kubectl get sa,role,rolebinding -n sandbox
